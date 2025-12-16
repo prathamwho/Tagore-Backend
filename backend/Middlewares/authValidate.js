@@ -1,4 +1,6 @@
 import joi from 'joi'
+import jwt from 'jsonwebtoken'
+import User from '../Models/userModel.js';
 
 export const registerValidate = (req, res, next) => {
     const schema = joi.object({
@@ -39,4 +41,56 @@ export const registerValidate = (req, res, next) => {
     }
     next();
 
+}
+
+export const loginValidate = (req, res, next) => {
+    const schema = joi.object({
+        email:joi.string().email().required().messages({
+            'string.base': `Email should be a type of 'mail'`,
+            'string.empty': `Email cannot be an empty field`,
+            'string.min': `Email should have a minimum length of {#limit}`,
+            'any.required': `Email is a required field`
+        }),
+        password:joi.string().min(8).required().messages({
+            'string.base': `Password should be a type of 'text'`,
+            'string.empty': `Password cannot be an empty field`,
+            'string.min': `Password atleast {#limit} characters`,
+            'any.required': `Password is a required field`
+        }),
+    }) 
+    const {email, password} = req.body;
+
+    try {
+        const isValid = schema.validate({email, password});
+        if(isValid.error){
+            return res.json(isValid.error.details[0].message)
+        }
+    } catch (error) {
+        console.log(`Error in loginValidate middleware`)
+        res.json({error});
+    }
+    next();
+
+}
+
+export const protectRoute = (req, res, next) => {
+    try {
+
+        const token = req.cookies.jwt;
+        if(!token){
+            return res.status(401).json({message:"Unauthorized access!"})
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        if(!decoded){
+            return res.status(403).json({message:"Unauthorized access!"})
+        }
+        //const user = User.findOne({decoded.email})
+            
+        next();
+
+    } catch (error) {
+        console.log(`Error in protectRoute middleware, ${error}`);
+        res.json({error});
+    }
 }
