@@ -1,6 +1,6 @@
 import express from 'express'
-import { protectRoute } from '../Middlewares/authValidate';
-import { createOrder, verifyPayment } from '../Controllers/payController';
+import { protectRoute } from '../Middlewares/authValidate.js';
+import { createOrder, verifyPayment } from '../Controllers/payController.js';
 
 const paymentRouter = express.Router();
 
